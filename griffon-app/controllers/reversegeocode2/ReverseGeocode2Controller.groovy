@@ -15,6 +15,17 @@ class ReverseGeocode2Controller {
 
     //RequestThrottle throttle = new RequestThrottle();
 
+    //NON-FUNCTIONING CLASS
+    // Class designed to prevent Google API from IP blocking:
+    //      We are limited to 15000 requests/day or 1 request/5.76 seconds
+    //      We can probably exceed the request/second ratio over a short span
+    //          Throttle determines how often we can request based on stats
+    //
+    // LOGIC:
+    //      THROTTLE_RATIO * REQUEST_TIMER = Duration of queue
+    //      BEFORE trying to add an element to queue, clean the queue
+    //
+    //      What do we do with denied requests? Queue the parameters or deny?
     static class RequestThrottle{
         static final REQUEST_TIMER = 5.76; // Seconds
         static final CAP_SPAN = 180;
@@ -123,7 +134,7 @@ class ReverseGeocode2Controller {
 
         public Boolean requestPlace(Date requestTime) {
             if (REQUEST_QUEUE.size() >= CAP_VALUE) QUEUE_OPEN = false
-            if (QUEUE_OPEN == false) return false
+            if (!QUEUE_OPEN) return false
 
             if (REQUEST_QUEUE.offer(requestTime)) {
                 return true;
