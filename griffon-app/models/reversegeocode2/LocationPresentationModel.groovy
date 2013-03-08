@@ -18,7 +18,8 @@ class LocationPresentationModel {
     @Bindable GeoLocation = new GeoLocation();
 
     private propertyUpdater = { e ->
-        if (e.propertyName == 'geoloc') {
+        // ??
+        if (e.propertyName == 'GeoLocation') {
             for(property in GeoLocation.PROPERTIES) {
                 def bean = e.newValue
                 delegate[property] = bean != null ? bean[property] : null
@@ -32,6 +33,8 @@ class LocationPresentationModel {
                 GeoLocation[property] = this[property];
             }
 
+            // Commit the acceptable lat/lng values to the underlying object
+            //      to prepare for cache
             GeoLocation['dblLatitude'] = Double.parseDouble(this['latitude'].toString())
             GeoLocation['dblLongitude'] = Double.parseDouble(this['longitude'].toString())
         }

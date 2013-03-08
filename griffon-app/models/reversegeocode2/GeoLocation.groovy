@@ -30,6 +30,7 @@ class GeoLocation {
         clsValidator = new CoordinateValidator();
     }
 
+    // Internal class for verifying coordinate data
     public class CoordinateValidator {
         // Accepted value ranges
         private static final MIN_LATITUDE = -90;
@@ -81,7 +82,10 @@ class GeoLocation {
             public static final DECIMAL_PATTERN = "(|\\-)\\d{0,3}(|\\.\\d{0,6})";
 
             static String convertToSexagesimal(String theCoordinate) {
-
+                // THIS ISN'T NEEDED AS THE APPLICATION STANDS
+                // However, it may be useful once the text field is
+                // a bit smarter (can detect coordinate format) for use
+                // with an auto-complete style function
             }
         }
 

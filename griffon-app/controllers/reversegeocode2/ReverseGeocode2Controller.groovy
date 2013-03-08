@@ -9,6 +9,10 @@ class ReverseGeocode2Controller {
     def model
     def view
 
+    // Will be used for persistence of previously queried coordinates
+    //      would help to reduce the number of requests
+    // SQL or NoSQL solution both possible; how much to cache will
+    //      depend on retrieval stats when the method is multi-threaded
     void newAction(evt) { }
     void saveAction(evt) { }
     void deleteAction(evt) { }
