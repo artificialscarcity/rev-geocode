@@ -23,6 +23,7 @@ class ReverseGeocode2Model {
             if (currentLocation.GeoLocation.chrValidator.isCharacterValid(e.newValue))
             {
                 currentLocation[e.propertyName] = e.newValue
+                currentLocation.GeoLocation.clsValidator.refreshValidation(currentLocation.latitude, currentLocation.longitude);
                 currentLocation['verified'] = true;
                 // Ignore if property name is verified or address because this will cause another
                 //      PropertyChangeEvent; how might we be able to determine the source of the call
