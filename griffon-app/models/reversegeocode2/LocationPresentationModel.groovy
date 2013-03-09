@@ -17,6 +17,17 @@ class LocationPresentationModel {
 
     @Bindable GeoLocation = new GeoLocation();
 
+    CoordinateValidator clsValidator = new CoordinateValidator();
+    CharValidator chrValidator = new CharValidator();
+
+    private String viewMask = "";
+
+    public enum MaskCommand {
+        PUSH_RESTRICTIONS,
+        ELIM_DECIMAL, ELIM_SEXAGES, ELIM_OPERATOR, ELIM_ORDINAL,
+        WEAK_SEXAOPER, WEAK_DECIOPER
+    }
+
     private propertyUpdater = { e ->
         // ??
         if (e.propertyName == 'GeoLocation') {
@@ -58,7 +69,6 @@ class LocationPresentationModel {
             put(GeoFormat.GEO_SEXAGES, 00.byteValue());
             put(GeoFormat.GEO_DECIMAL, 01.byteValue());
         }}
-        def geoFormat = Arrays.asList(GeoDirection.findAll().toArray());
 
         // Direction format byte map
         public enum GeoDirection {
@@ -68,22 +78,26 @@ class LocationPresentationModel {
             put(GeoDirection.GEO_OPERATOR, 10.byteValue());
             put(GeoDirection.GEO_ORDINAL, 11.byteValue());
         }}
-        def geoDirection = Arrays.asList(GeoDirection.findAll().toArray());
+
+        // Enum sets for managing possibilities
+        public EnumSet<GeoFormat> geoFormats;
+        public EnumSet<GeoDirection> geoDirections;
 
         public CoordinateValidator() {
             refreshValidation(latitude, longitude);
         }
 
         public void getCoordinateType() {
-            def tmpFrm = geoFormat;
-            def tmpDir = geoDirection;
+            def tmpFrm = geoFormats;
+            def tmpDir = geoDirections;
+            if ( tmpFrm == null || tmpDir == null) return;
             if ( tmpFrm.size() == 1 && tmpDir.size() == 1 ) {
 
                 if ((this.geoFormatByteMap.get(tmpFrm.first()) && this.geoFormatByteMap.get(tmpFrm.first())) == 01) {
+
+                } else if ((this.geoFormatByteMap.get(tmpFrm.first()) || this.geoFormatByteMap.get(tmpFrm.first())) == 10) {
                     println();
-                } else if ((this.GeoFormat || this.GeoFormat) == 10) {
-                    println();
-                } else if (this.GeoFormat == 00) {
+                } else if (this.geoFormatByteMap.get(tmpFrm.first()) == 00) {
                     println();
                 } else {
                     println();
@@ -91,12 +105,27 @@ class LocationPresentationModel {
             }
         }
 
-        public void alterPossibleSet() {
+        public void alterPossibleSet(MaskCommand theCmd) {
+            if (theCmd == MaskCommand.PUSH_RESTRICTIONS) return;
 
+            if (theCmd == MaskCommand.ELIM_DECIMAL) {
+                geoFormats = EnumSet.of(GeoFormat.GEO_SEXAGES)
+            } else if (theCmd == MaskCommand.ELIM_SEXAGES) {
+                geoFormats = EnumSet.of(GeoFormat.GEO_DECIMAL)
+            } else if (theCmd == MaskCommand.WEAK_DECIOPER) {
+                geoFormats = EnumSet.of(GeoFormat.GEO_DECIMAL)
+                geoDirections = EnumSet.of(GeoDirection.GEO_OPERATOR)
+            } else if (theCmd == MaskCommand.WEAK_SEXAOPER) {
+                geoFormats = EnumSet.of(GeoFormat.GEO_SEXAGES)
+                geoDirections = EnumSet.of(GeoDirection.GEO_OPERATOR)
+            } else if (theCmd == MaskCommand.ELIM_OPERATOR) {
+                geoDirections = EnumSet.of(GeoDirection.GEO_ORDINAL)
+            }
         }
 
         public void refreshValidation(String lat, String lng) {
             getCoordinateType();
+
             if (isValidLatitude(lat) && isValidLongitude(lng)) IS_VALID = true else IS_VALID = false;
         }
 
@@ -196,6 +225,34 @@ class LocationPresentationModel {
             }
 
             if (testChar.toString().matches(regexMask.toString())) {
+                if (newVal.length() == 3) {
+                    if (["D", "d", "\\s"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.ELIM_DECIMAL)
+                    if (testChar == ".") clsValidator.alterPossibleSet(MaskCommand.ELIM_SEXAGES)
+                    if (testChar.isDigit()) clsValidator.alterPossibleSet(MaskCommand.WEAK_SEXAOPER)
+                }
+                if (newVal.length() == 4) {
+                    if (["D", "d", "\\s"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.WEAK_SEXAOPER)
+                    if (testChar == ".") clsValidator.alterPossibleSet(MaskCommand.WEAK_DECIOPER)
+                }
+                if (newVal.length() == 6) {
+                    if (["'", "M", "m"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.ELIM_DECIMAL)
+                }
+                if (newVal.length() == 7) {
+                    if (["'", "M", "m"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.WEAK_SEXAOPER)
+                }
+                if (newVal.length() == 9) {
+                    if (["\"", "S", "s"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.ELIM_DECIMAL)
+                }
+                if (newVal.length() == 10) {
+                    if (testChar == "\\s") clsValidator.alterPossibleSet(MaskCommand.ELIM_OPERATOR)
+                    if (["\"", "S", "s"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.WEAK_SEXAOPER)
+                    if (testChar.isDigit()) clsValidator.alterPossibleSet(MaskCommand.WEAK_DECIOPER)
+                }
+                if (newVal.length() == 11) {
+                    if (!(testChar == "-")) clsValidator.alterPossibleSet(MaskCommand.ELIM_OPERATOR)
+                    else return; // SPECIALIZED CALL NEEDED HERE
+                }
+
                 return true;
             }
             else return false;

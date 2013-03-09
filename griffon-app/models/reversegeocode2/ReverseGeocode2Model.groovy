@@ -20,11 +20,11 @@ class ReverseGeocode2Model {
     private class ModelUpdater implements PropertyChangeListener {
         void propertyChange(PropertyChangeEvent e) {
             if (e.propertyName == 'verified') return;
-            if (currentLocation.GeoLocation.chrValidator.isCharacterValid(e.newValue))
+            if (currentLocation.chrValidator.isCharacterValid(e.newValue))
             {
                 currentLocation[e.propertyName] = e.newValue
-                currentLocation.GeoLocation.clsValidator.refreshValidation(currentLocation.latitude, currentLocation.longitude);
-                currentLocation['verified'] = true;
+                currentLocation.clsValidator.getCoordinateType()
+                currentLocation['verified'] = true
                 // Ignore if property name is verified or address because this will cause another
                 //      PropertyChangeEvent; how might we be able to determine the source of the call
                 //if (e.propertyName != 'verified' && e.propertyName != 'address') {
@@ -39,9 +39,9 @@ class ReverseGeocode2Model {
     }
 
     Boolean IsValidCoordinateSet() {
-        currentLocation.GeoLocation.clsValidator.refreshValidation(currentLocation.latitude, currentLocation.longitude);
+        currentLocation.clsValidator.refreshValidation(currentLocation.latitude, currentLocation.longitude);
         // This verified variable is functionally useless, but allows for preview and debugging
-        currentLocation['verified'] = currentLocation.GeoLocation.clsValidator.IS_VALID;
+        currentLocation['verified'] = currentLocation.clsValidator.IS_VALID;
         if (currentLocation['verified']) {
             if (currentLocation['address'] == "Invalid coordinates.") currentLocation['address'] = "";
             return true;
