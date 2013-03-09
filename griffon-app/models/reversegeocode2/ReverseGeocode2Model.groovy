@@ -20,20 +20,35 @@ class ReverseGeocode2Model {
     private class ModelUpdater implements PropertyChangeListener {
         void propertyChange(PropertyChangeEvent e) {
             if (e.propertyName == 'verified') return;
-            if (currentLocation.chrValidator.isCharacterValid(e.newValue))
-            {
-                currentLocation[e.propertyName] = e.newValue
-                currentLocation.clsValidator.getCoordinateType()
-                currentLocation['verified'] = true
-                // Ignore if property name is verified or address because this will cause another
-                //      PropertyChangeEvent; how might we be able to determine the source of the call
-                //if (e.propertyName != 'verified' && e.propertyName != 'address') {
-                //        currentLocation['verified'] = IsValidCoordinateSet()
-                //}
+            if (e.propertyName == 'latitude' || e.propertyName == 'longitude') {
+                if (currentLocation.chrValidator.isCharacterValid(e.newValue))
+                {
+                    currentLocation[e.propertyName] = e.newValue
+                    currentLocation.clsValidator.getCoordinateType()
+                    currentLocation['verified'] = true
+                    // Ignore if property name is verified or address because this will cause another
+                    //      PropertyChangeEvent; how might we be able to determine the source of the call
+                    //if (e.propertyName != 'verified' && e.propertyName != 'address') {
+                    //        currentLocation['verified'] = IsValidCoordinateSet()
+                    //}
+                }
+                else {
+                    println("bad char");
+                    currentLocation['verified'] = false;
+                }
             }
-            else {
-                println("bad char");
-                currentLocation['verified'] = false;
+            else if (e.propertyName == 'address') {
+                def testArr = e.newValue.toString().split("\n")
+                if (testArr.length > 1) return;
+
+                def addressArr = e.newValue.toString().split(",")
+                def newAddress = addressArr[0] + "\n"
+                    newAddress += addressArr[1].substring(1, addressArr[1].length())
+                    newAddress += ","
+                    newAddress += addressArr[2]
+                    newAddress += ","
+                    newAddress += addressArr[3]
+                currentLocation['address'] = newAddress
             }
         }
     }
