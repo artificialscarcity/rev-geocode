@@ -20,6 +20,7 @@ class GeoLocation {
     String address;
 
     CoordinateValidator clsValidator;
+    CharValidator chrValidator;
 
     String toString() { "$address : ($dblLatitude,$dblLongitude)" }
 
@@ -28,6 +29,7 @@ class GeoLocation {
 
     public GeoLocation() {
         clsValidator = new CoordinateValidator();
+        chrValidator = new CharValidator();
     }
 
     // Internal class for verifying coordinate data
@@ -38,10 +40,46 @@ class GeoLocation {
         private static final MIN_LONGITUDE = -180;
         private static final MAX_LONGITUDE = 180;
 
+        // Number format byte map
+        public enum GeoFormat {
+            GEO_SEXAGES, GEO_DECIMAL,
+        }
+        private static final GEO_SEX = 00;
+        private static final GEO_DEC = 01;
+        private Map<GeoFormat, Byte> geoFormatByteMap = new HashMap<GeoFormat, Byte>() {{
+            put(GeoFormat.GEO_SEXAGES, GEO_SEX);
+            put(GeoFormat.GEO_DECIMAL, GEO_DEC);
+        }}
+        GeoFormat geoFormat;
+
+        // Direction format byte map
+        public enum GeoDirection {
+            GEO_OPERATOR, GEO_ORDINAL
+        }
+        private static final GEO_OP = 10;
+        private static final GEO_OR = 11;
+        private Map<GeoDirection, Byte> geoDirectionByteMap = new HashMap<GeoDirection, Byte>() {{
+            put(GeoDirection.GEO_OPERATOR, GEO_OP);
+            put(GeoDirection.GEO_ORDINAL, GEO_OR);
+        }}
+        GeoDirection geoDirection;
+
         public Boolean IS_VALID;
 
         public CoordinateValidator() {
             refreshValidation(latitude, longitude);
+        }
+
+        public void getCoordinateType() {
+            if ((this.GeoFormat && this.GeoDirection) == 01) {
+
+            } else if ((this.GeoFormat || this.GeoFormat) == 10) {
+
+            } else if (this.GeoFormat == 00) {
+
+            } else {
+
+            }
         }
 
         public void refreshValidation(String lat, String lng) {
@@ -102,6 +140,51 @@ class GeoLocation {
 
                 return sexagesimalCrd
             }
+        }
+    }
+
+    public class CharValidator {
+        private static final List<Integer> uniqueSet = Arrays.asList( 1, 9, 10, 11 );
+        private static final List<Integer> numericSet = Arrays.asList( 2, 5, 8 );
+        private static final List<Integer> numDegSet = Arrays.asList( 3, 4 );
+        private static final List<Integer> numMinSet = Arrays.asList( 6, 7 );
+
+        private static final Map<Integer, String> uniqueValidationKeys = new HashMap<Integer, String>() {{
+            put(1, "(-|[0-9])");
+            put(9, "(\\|S|s|[0-9])");
+            put(10, "(\\s|\\|S|s|[0-9])");
+            put(11, "(N|n|S|s|\\-)");
+        }}
+
+        private static final String numericMask = "([0-9])";
+        private static final String numDegMask = "(D|d|.|[0-9])";
+        private static final String numMinMask = "(\\'|M|m|[0-9])";
+
+        CharValidator() {
+
+        }
+
+        public Boolean isCharacterValid(String newVal) {
+            if (newVal.length() == 0) return true;
+            def testChar = newVal.charAt(newVal.length() - 1);
+            def regexMask;
+
+            if (uniqueSet.contains(newVal.length())) {
+                regexMask = uniqueValidationKeys.get(newVal.length())
+            }   else if (numericSet.contains(newVal.length())) {
+                regexMask = numericMask
+            }   else if (numDegSet.contains(newVal.length())) {
+                regexMask = numDegMask
+            }   else if (numMinSet.contains(newVal.length())) {
+                regexMask = numMinMask
+            }   else {
+                // WHY ARE WE HERE?
+            }
+
+            if (testChar.toString().matches(regexMask.toString())) {
+                return true;
+            }
+            else return false;
         }
     }
 }

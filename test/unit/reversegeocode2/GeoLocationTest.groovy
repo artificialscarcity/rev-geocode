@@ -27,6 +27,12 @@ class GeoLocationTest extends GroovyTestCase {
         }
     }
 
+    void testCharValidator() {
+        def geoLoc = new GeoLocation()
+        def bool = geoLoc.chrValidator.isCharacterValid("-")
+        assert bool == true
+    }
+
     void testGetDblLatitude() {
         def geoLoc = new GeoLocation()
         geoLoc.dblLatitude = 41.23
