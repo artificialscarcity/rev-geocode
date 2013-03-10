@@ -132,12 +132,10 @@ class LocationPresentationModel {
         private Boolean isValidLatitude(String lat) {
             if (lat == null) return true;
             if (lat == "") return true;
-            if (lat.matches(DecimalCoordinate.DECIMAL_PATTERN)) {}
-            else if (lat.matches(SexagesimalCoordinate.SEXAGESIMAL_PATTERN)) {
-                lat = SexagesimalCoordinate.convertToDecimal(lat);
-                if (lat.matches(DecimalCoordinate.DECIMAL_PATTERN)) {} else return false;
+            if (lat.matches(SexagesimalCoordinate.SEXAGESIMAL_PATTERN)) {
+                latitude = SexagesimalCoordinate.convertToDecimal(lat);
+                if (!lat.matches(DecimalCoordinate.DECIMAL_PATTERN)) return false
             }
-            else return false;
 
             if (lat == "-") {lat = "-0.000001"}
             if (MIN_LATITUDE < Double.parseDouble(lat)
@@ -147,12 +145,10 @@ class LocationPresentationModel {
         private Boolean isValidLongitude(String lng) {
             if (lng == null) return true;
             if (lng == "") return true;
-            if (lng.matches(DecimalCoordinate.DECIMAL_PATTERN)){}
-            else if (lng.matches(SexagesimalCoordinate.SEXAGESIMAL_PATTERN)) {
-                lng = SexagesimalCoordinate.convertToDecimal(lng);
-                if (lng.matches(DecimalCoordinate.DECIMAL_PATTERN)) {} else return false;
+            if (lng.matches(SexagesimalCoordinate.SEXAGESIMAL_PATTERN)) {
+                longitude = SexagesimalCoordinate.convertToDecimal(lng);
+                if (!lng.matches(DecimalCoordinate.DECIMAL_PATTERN)) return false;
             }
-            else return false;
 
             if (lng == "-") lng = "-0.000001";
             if (MIN_LONGITUDE < Double.parseDouble(lng)
@@ -171,14 +167,15 @@ class LocationPresentationModel {
         }
 
         class SexagesimalCoordinate {
-            public static final SEXAGESIMAL_PATTERN = "\\d{1,3}(D|\\s)\\d{1,2}(M|\\s)\\d{1,2}(S|\\s)";
+            public static final SEXAGESIMAL_PATTERN = "\\d{1,3}(D|\\s)\\d{1,2}(M|m|\'|\\s)\\d{1,2}(S|s|\"|\\s)\\s(N|n|S|s|E|e|W|)";
 
             static String convertToDecimal(String theCoordinate) {
                 def coorArray = theCoordinate.split("\\D")
                 def sexagesimalCrd
                 if (coorArray.length > 1) {
-                    sexagesimalCrd = coorArray[0] + "." + (coorArray[1] / 60)
-                    if (coorArray.length == 3) sexagesimalCrd += (coorArray[2] / 3600)
+                    sexagesimalCrd = coorArray[0].toString() + "."
+                    def deciCrd = (Integer.parseInt(coorArray[1]) / 60 ) + (Integer.parseInt(coorArray[2]) / 3600)
+                    if (coorArray.length == 3) sexagesimalCrd += deciCrd.toString().substring(3, deciCrd.toString().length())
                 } else sexagesimalCrd = coorArray[0]
 
                 return sexagesimalCrd
@@ -187,35 +184,35 @@ class LocationPresentationModel {
     }
 
     public class CharValidator {
-        private static final List<Integer> uniqueSet = Arrays.asList( 1, 9, 10, 11 );
-        private static final List<Integer> numericSet = Arrays.asList( 2, 5, 8 );
-        private static final List<Integer> numDegSet = Arrays.asList( 3, 4 );
-        private static final List<Integer> numMinSet = Arrays.asList( 6, 7 );
+        private static final List<Integer> uniqueSet = Arrays.asList( 1, 10, 11, 12 );
+        private static final List<Integer> numDegSet = Arrays.asList( 2, 3, 4 );
+        private static final List<Integer> numMinSet = Arrays.asList( 5, 6, 7 );
+        private static final List<Integer> numSecSet = Arrays.asList( 8, 9 );
 
         private static final Map<Integer, String> uniqueValidationKeys = new HashMap<Integer, String>() {{
             put(1, "(-|[0-9])");
-            put(9, "(\\|S|s|[0-9])");
-            put(10, "(\\s|\\|S|s|[0-9])");
-            put(11, "(N|n|S|s|\\-)");
+            put(10, "(\\s|\"|S|s|N|n|W|w|E|e[0-9])");
+            put(11, "(\\s|N|n|S|s|W|w|E|e|\\-)");
+            put(12, "(N|n|S|s|W|w|E|e|\\-)");
         }}
 
-        private static final String numericMask = "([0-9])";
-        private static final String numDegMask = "(D|d|.|[0-9])";
+        private static final String numDegMask = "(\\s|D|d|.|[0-9])";
         private static final String numMinMask = "(\\'|M|m|[0-9])";
+        private static final String numSecMask = "(\"|\\s|S|s|[0-9])"
 
         CharValidator() {
 
         }
 
-        public Boolean isCharacterValid(String newVal) {
+        public Boolean isCharacterValid(String newVal, String prop) {
             if (newVal.length() == 0) return true;
             def testChar = newVal.charAt(newVal.length() - 1);
             def regexMask;
 
             if (uniqueSet.contains(newVal.length())) {
                 regexMask = uniqueValidationKeys.get(newVal.length())
-            }   else if (numericSet.contains(newVal.length())) {
-                regexMask = numericMask
+            }   else if (numSecSet.contains(newVal.length())) {
+                regexMask = numSecMask
             }   else if (numDegSet.contains(newVal.length())) {
                 regexMask = numDegMask
             }   else if (numMinSet.contains(newVal.length())) {
@@ -225,30 +222,43 @@ class LocationPresentationModel {
             }
 
             if (testChar.toString().matches(regexMask.toString())) {
-                if (newVal.length() == 3) {
-                    if (["D", "d", "\\s"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.ELIM_DECIMAL)
-                    if (testChar == ".") clsValidator.alterPossibleSet(MaskCommand.ELIM_SEXAGES)
-                    if (testChar.isDigit()) clsValidator.alterPossibleSet(MaskCommand.WEAK_SEXAOPER)
+                if (newVal == "-") clsValidator.alterPossibleSet(MaskCommand.ELIM_ORDINAL)
+                else if (newVal.length() == 2) {
+                    if (testChar == ".") {
+                        clsValidator.alterPossibleSet(MaskCommand.ELIM_SEXAGES)
+                        if (newVal.substring(1,1) == "-") clsValidator.alterPossibleSet(MaskCommand.ELIM_ORDINAL)
+                    }
                 }
-                if (newVal.length() == 4) {
+                else if (newVal.length() == 3) {
+                    if (["D", "d", "\\s"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.ELIM_DECIMAL)
+                    if (testChar == ".") {
+                        clsValidator.alterPossibleSet(MaskCommand.ELIM_SEXAGES)
+                        if (newVal.substring(1,1) == "-") clsValidator.alterPossibleSet(MaskCommand.ELIM_ORDINAL)
+                    }
+                    if (testChar.isDigit()) {
+                        if (prop == "latitude") clsValidator.alterPossibleSet(MaskCommand.WEAK_SEXAOPER)
+                        else clsValidator.alterPossibleSet(MaskCommand.PUSH_RESTRICTIONS)
+                    }
+                }
+                else if (newVal.length() == 4) {
                     if (["D", "d", "\\s"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.WEAK_SEXAOPER)
                     if (testChar == ".") clsValidator.alterPossibleSet(MaskCommand.WEAK_DECIOPER)
                 }
-                if (newVal.length() == 6) {
+                else if (newVal.length() == 6) {
                     if (["'", "M", "m"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.ELIM_DECIMAL)
                 }
-                if (newVal.length() == 7) {
+                else if (newVal.length() == 7) {
                     if (["'", "M", "m"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.WEAK_SEXAOPER)
                 }
-                if (newVal.length() == 9) {
+                else if (newVal.length() == 9) {
                     if (["\"", "S", "s"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.ELIM_DECIMAL)
                 }
-                if (newVal.length() == 10) {
+                else if (newVal.length() == 10) {
                     if (testChar == "\\s") clsValidator.alterPossibleSet(MaskCommand.ELIM_OPERATOR)
                     if (["\"", "S", "s"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.WEAK_SEXAOPER)
                     if (testChar.isDigit()) clsValidator.alterPossibleSet(MaskCommand.WEAK_DECIOPER)
                 }
-                if (newVal.length() == 11) {
+                else if (newVal.length() == 11) {
                     if (!(testChar == "-")) clsValidator.alterPossibleSet(MaskCommand.ELIM_OPERATOR)
                     else return; // SPECIALIZED CALL NEEDED HERE
                 }

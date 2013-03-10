@@ -21,7 +21,7 @@ class ReverseGeocode2Model {
         void propertyChange(PropertyChangeEvent e) {
             if (e.propertyName == 'verified') return;
             if (e.propertyName == 'latitude' || e.propertyName == 'longitude') {
-                if (currentLocation.chrValidator.isCharacterValid(e.newValue))
+                if (currentLocation.chrValidator.isCharacterValid(e.newValue, e.propertyName))
                 {
                     currentLocation[e.propertyName] = e.newValue
                     currentLocation.clsValidator.getCoordinateType()
@@ -65,8 +65,9 @@ class ReverseGeocode2Model {
     }
 
     private void retrieveJSON(ActionEvent event = null) {
+        currentLocation.clsValidator.refreshValidation(currentLocation.latitude, currentLocation.longitude)
         // If it's not a good coordinate, don't waste a request
-        if (!currentLocation.verified) return;
+        if (!currentLocation.clsValidator.IS_VALID) return;
         def theUrl = "http://maps.googleapis.com/maps/api/geocode/json" +
                             "?latlng=${currentLocation.latitude},${currentLocation.longitude}" +
                             "&sensor=false";            // HTTP Builder may offer a more safe and easy solution
