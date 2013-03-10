@@ -1,1 +1,13 @@
-This file was created by IntelliJ IDEA 12.0.4 for binding GitHub repository
+Executable jar is located at:
+\dist\jar\reverseGeocode2-windows.jar
+
+Rev. 2 Features
+-Search button retrieves key-enter coordinates into the address TextField
+-Address is now formatted to rectify layout issues; still need to 'fix' layout in view
+-Coordinate TextFields now accept multiple formats:
+    -Format may be either decimal or sexagesimal
+    -Direction may be either ordinal or operator-based
+-Auto-detect of user input still needs work
+    -State switches need debugging
+    -Fall through needs optimized
+    -Needs recall to compare to prior digit possibilities

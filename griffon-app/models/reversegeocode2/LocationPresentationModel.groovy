@@ -85,6 +85,8 @@ class LocationPresentationModel {
 
         public CoordinateValidator() {
             refreshValidation(latitude, longitude);
+            geoFormats = EnumSet.of(GeoFormat.GEO_DECIMAL, GeoFormat.GEO_SEXAGES);
+            geoDirections = EnumSet.of(GeoDirection.GEO_OPERATOR, GeoDirection.GEO_ORDINAL)
         }
 
         public void getCoordinateType() {
@@ -94,13 +96,13 @@ class LocationPresentationModel {
             if ( tmpFrm.size() == 1 && tmpDir.size() == 1 ) {
 
                 if ((this.geoFormatByteMap.get(tmpFrm.first()) && this.geoFormatByteMap.get(tmpFrm.first())) == 01) {
-
+                    println(1);
                 } else if ((this.geoFormatByteMap.get(tmpFrm.first()) || this.geoFormatByteMap.get(tmpFrm.first())) == 10) {
-                    println();
+                    println(2);
                 } else if (this.geoFormatByteMap.get(tmpFrm.first()) == 00) {
-                    println();
+                    println(3);
                 } else {
-                    println();
+                    println(4);
                 }
             }
         }
@@ -125,7 +127,6 @@ class LocationPresentationModel {
 
         public void refreshValidation(String lat, String lng) {
             getCoordinateType();
-
             if (isValidLatitude(lat) && isValidLongitude(lng)) IS_VALID = true else IS_VALID = false;
         }
 
@@ -138,8 +139,7 @@ class LocationPresentationModel {
                     return false
                 }
             }
-            if (MIN_LATITUDE < Double.parseDouble(lat)
-                    && Double.parseDouble(lat) < MAX_LATITUDE) return true;
+            if (Double.parseDouble(latitude) < MAX_LATITUDE && MIN_LATITUDE < Double.parseDouble(latitude)) return true;
             return false;
         }
 
@@ -152,8 +152,7 @@ class LocationPresentationModel {
                     return false;
                 }
             }
-            if (MIN_LONGITUDE < Double.parseDouble(lng)
-                    && Double.parseDouble(lng) < MAX_LONGITUDE) return true;
+            if (Double.parseDouble(longitude) < MAX_LONGITUDE && MIN_LONGITUDE < Double.parseDouble(longitude)) return true;
             return false;
         }
 

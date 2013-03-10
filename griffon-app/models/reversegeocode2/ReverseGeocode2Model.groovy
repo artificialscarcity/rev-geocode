@@ -24,7 +24,7 @@ class ReverseGeocode2Model {
                 if (currentLocation.chrValidator.isCharacterValid(e.newValue, e.propertyName))
                 {
                     currentLocation[e.propertyName] = e.newValue
-                    currentLocation.clsValidator.getCoordinateType()
+                    currentLocation.clsValidator.refreshValidation(currentLocation.latitude, currentLocation.longitude)
                     currentLocation['verified'] = true
                     // Ignore if property name is verified or address because this will cause another
                     //      PropertyChangeEvent; how might we be able to determine the source of the call
@@ -33,6 +33,8 @@ class ReverseGeocode2Model {
                     //}
                 }
                 else {
+                    // How can we deny this change? Key listener on a switch
+                    //      would work, how to set up the event?
                     println("bad char");
                     currentLocation['verified'] = false;
                 }

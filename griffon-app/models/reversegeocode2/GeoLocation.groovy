@@ -10,7 +10,9 @@ package reversegeocode2
  * To change this template use File | Settings | File Templates.
  */
 class GeoLocation {
-
+    // These are not used until persistence
+    // This may allow us to preserve the search term for
+    //  an asynchronous auto-complete feature
     Double dblLatitude;
     Double dblLongitude;
 
