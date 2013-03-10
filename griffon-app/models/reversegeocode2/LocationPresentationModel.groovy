@@ -134,12 +134,13 @@ class LocationPresentationModel {
             if (lat == "") return true;
             if (lat.matches(SexagesimalCoordinate.SEXAGESIMAL_PATTERN)) {
                 latitude = SexagesimalCoordinate.convertToDecimal(lat);
-                if (!lat.matches(DecimalCoordinate.DECIMAL_PATTERN)) return false
+                if (!(latitude.matches(DecimalCoordinate.DECIMAL_PATTERN))) {
+                    return false
+                }
             }
-
-            if (lat == "-") {lat = "-0.000001"}
             if (MIN_LATITUDE < Double.parseDouble(lat)
                     && Double.parseDouble(lat) < MAX_LATITUDE) return true;
+            return false;
         }
 
         private Boolean isValidLongitude(String lng) {
@@ -147,12 +148,13 @@ class LocationPresentationModel {
             if (lng == "") return true;
             if (lng.matches(SexagesimalCoordinate.SEXAGESIMAL_PATTERN)) {
                 longitude = SexagesimalCoordinate.convertToDecimal(lng);
-                if (!lng.matches(DecimalCoordinate.DECIMAL_PATTERN)) return false;
+                if (!longitude.matches(DecimalCoordinate.DECIMAL_PATTERN)) {
+                    return false;
+                }
             }
-
-            if (lng == "-") lng = "-0.000001";
             if (MIN_LONGITUDE < Double.parseDouble(lng)
                     && Double.parseDouble(lng) < MAX_LONGITUDE) return true;
+            return false;
         }
 
         class DecimalCoordinate {
@@ -171,13 +173,19 @@ class LocationPresentationModel {
 
             static String convertToDecimal(String theCoordinate) {
                 def coorArray = theCoordinate.split("\\D")
+                def ordDirect = theCoordinate.substring(theCoordinate.length() - 1)
                 def sexagesimalCrd
                 if (coorArray.length > 1) {
                     sexagesimalCrd = coorArray[0].toString() + "."
                     def deciCrd = (Integer.parseInt(coorArray[1]) / 60 ) + (Integer.parseInt(coorArray[2]) / 3600)
-                    if (coorArray.length == 3) sexagesimalCrd += deciCrd.toString().substring(3, deciCrd.toString().length())
+                    if (coorArray.length == 3) {
+                        if (deciCrd.toString().length() > 8) sexagesimalCrd += deciCrd.toString().substring(3, 9)
+                        else sexagesimalCrd += deciCrd.toString().substring(3, deciCrd.toString().length())
+                    }
                 } else sexagesimalCrd = coorArray[0]
-
+                if (ordDirect.matches("(W|w|S|s)")) {
+                    sexagesimalCrd = Double.parseDouble(sexagesimalCrd) * -1
+                }
                 return sexagesimalCrd
             }
         }
