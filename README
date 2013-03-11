@@ -11,3 +11,6 @@ Rev. 2 Features
     -State switches need debugging
     -Fall through needs optimized
     -Needs recall to compare to prior digit possibilities
+    -Without the floating validation mask, some coordinates may bug out
+-Minutes seconds notation needs decimal support
+-Minus sign should function as a directional switch if not in first position

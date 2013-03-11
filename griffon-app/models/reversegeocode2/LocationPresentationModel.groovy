@@ -84,11 +84,15 @@ class LocationPresentationModel {
         public EnumSet<GeoDirection> geoDirections;
 
         public CoordinateValidator() {
-            refreshValidation(latitude, longitude);
+            refreshValidation();
             geoFormats = EnumSet.of(GeoFormat.GEO_DECIMAL, GeoFormat.GEO_SEXAGES);
             geoDirections = EnumSet.of(GeoDirection.GEO_OPERATOR, GeoDirection.GEO_ORDINAL)
         }
 
+        // The following two methods (getCoordinateType and alterPossibleSet need significant work
+        // they receive the state change from the character validator and switches it's mask accordingly
+        //  We need some sort of fuzzy validation if the coordinate could be of multiple
+        //  formats. Still can't get key listeners working, but they would help greatly...
         public void getCoordinateType() {
             def tmpFrm = geoFormats;
             def tmpDir = geoDirections;
@@ -125,13 +129,17 @@ class LocationPresentationModel {
             }
         }
 
-        public void refreshValidation(String lat, String lng) {
+        public void refreshValidation() {
             getCoordinateType();
-            if (isValidLatitude(lat) && isValidLongitude(lng)) IS_VALID = true else IS_VALID = false;
+            IS_VALID = (isValidLatitude(latitude) && isValidLongitude(longitude))
         }
 
         private Boolean isValidLatitude(String lat) {
+            // It may be effective to make this method return a
+            // three-way switch, where the null state implies the
+            // validator couldn't yet make a decision
             if (lat == null) return true;
+            if (lat == "-") return true;
             if (lat == "") return true;
             if (lat.matches(SexagesimalCoordinate.SEXAGESIMAL_PATTERN)) {
                 latitude = SexagesimalCoordinate.convertToDecimal(lat);
@@ -145,6 +153,7 @@ class LocationPresentationModel {
 
         private Boolean isValidLongitude(String lng) {
             if (lng == null) return true;
+            if (lng == "-") return true;
             if (lng == "") return true;
             if (lng.matches(SexagesimalCoordinate.SEXAGESIMAL_PATTERN)) {
                 longitude = SexagesimalCoordinate.convertToDecimal(lng);
@@ -176,6 +185,7 @@ class LocationPresentationModel {
                 def sexagesimalCrd
                 if (coorArray.length > 1) {
                     sexagesimalCrd = coorArray[0].toString() + "."
+                    // Need to test minute and seconds ranges
                     def deciCrd = (Integer.parseInt(coorArray[1]) / 60 ) + (Integer.parseInt(coorArray[2]) / 3600)
                     if (coorArray.length == 3) {
                         if (deciCrd.toString().length() > 8) sexagesimalCrd += deciCrd.toString().substring(3, 9)
@@ -228,6 +238,8 @@ class LocationPresentationModel {
                 // WHY ARE WE HERE?
             }
 
+            // This length testing fall-through is bulky and difficult to read
+            // Is there a way to simplify it?
             if (testChar.toString().matches(regexMask.toString())) {
                 if (newVal == "-") clsValidator.alterPossibleSet(MaskCommand.ELIM_ORDINAL)
                 else if (newVal.length() == 2) {

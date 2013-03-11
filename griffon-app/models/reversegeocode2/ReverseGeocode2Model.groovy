@@ -21,11 +21,11 @@ class ReverseGeocode2Model {
         void propertyChange(PropertyChangeEvent e) {
             if (e.propertyName == 'verified') return;
             if (e.propertyName == 'latitude' || e.propertyName == 'longitude') {
-                if (currentLocation.chrValidator.isCharacterValid(e.newValue, e.propertyName))
+                if (currentLocation.chrValidator.isCharacterValid(e.newValue.toString(), e.propertyName))
                 {
                     currentLocation[e.propertyName] = e.newValue
-                    currentLocation.clsValidator.refreshValidation(currentLocation.latitude, currentLocation.longitude)
-                    currentLocation['verified'] = true
+                    //currentLocation.clsValidator.refreshValidation()
+                    currentLocation['verified'] = currentLocation.clsValidator.IS_VALID
                     // Ignore if property name is verified or address because this will cause another
                     //      PropertyChangeEvent; how might we be able to determine the source of the call
                     //if (e.propertyName != 'verified' && e.propertyName != 'address') {
@@ -40,10 +40,12 @@ class ReverseGeocode2Model {
                 }
             }
             else if (e.propertyName == 'address') {
+                if (e.newValue == null) return;
                 def testArr = e.newValue.toString().split("\n")
                 if (testArr.length > 1) return;
 
                 def addressArr = e.newValue.toString().split(",")
+                if (addressArr.length < 2) return;
                 def newAddress = addressArr[0] + "\n"
                     newAddress += addressArr[1].substring(1, addressArr[1].length())
                     newAddress += ","
@@ -56,7 +58,7 @@ class ReverseGeocode2Model {
     }
 
     Boolean IsValidCoordinateSet() {
-        currentLocation.clsValidator.refreshValidation(currentLocation.latitude, currentLocation.longitude);
+        currentLocation.clsValidator.refreshValidation();
         // This verified variable is functionally useless, but allows for preview and debugging
         currentLocation['verified'] = currentLocation.clsValidator.IS_VALID;
         if (currentLocation['verified']) {
@@ -67,7 +69,7 @@ class ReverseGeocode2Model {
     }
 
     private void retrieveJSON(ActionEvent event = null) {
-        currentLocation.clsValidator.refreshValidation(currentLocation.latitude, currentLocation.longitude)
+        currentLocation.clsValidator.refreshValidation()
         // If it's not a good coordinate, don't waste a request
         if (!currentLocation.clsValidator.IS_VALID) return;
         def theUrl = "http://maps.googleapis.com/maps/api/geocode/json" +
@@ -86,7 +88,7 @@ class ReverseGeocode2Model {
 
     // Retrieve and parse to response
     // Parse is extremely simple due to nature of required data
-    private String getResponse(String theUrl) {
+    private static String getResponse(String theUrl) {
         def theResponse = new URL(theUrl)
         def decodeJSONResponse = new JsonSlurper().parseText(theResponse.getText())
         return decodeJSONResponse.results.formatted_address[0]

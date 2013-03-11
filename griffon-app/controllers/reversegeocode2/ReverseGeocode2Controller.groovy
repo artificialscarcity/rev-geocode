@@ -2,7 +2,8 @@ package reversegeocode2
 
 import java.text.DateFormat
 import java.text.SimpleDateFormat
-import java.util.concurrent.DelayQueue
+import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
 
 class ReverseGeocode2Controller {
     // these will be injected by Griffon
@@ -164,12 +165,12 @@ class ReverseGeocode2Controller {
     //    // this method is called when the group is destroyed
     // }
 
-    /*
-        Remember that actions will be called outside of the UI thread
-        by default. You can change this setting of course.
-        Please read chapter 9 of the Griffon Guide to know more.
+
+    //    Remember that actions will be called outside of the UI thread
+    //    by default. You can change this setting of course.
+    //    Please read chapter 9 of the Griffon Guide to know more.
        
     def action = { evt = null ->
+
     }
-    */
 }

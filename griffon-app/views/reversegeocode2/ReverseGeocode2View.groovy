@@ -1,5 +1,8 @@
 package reversegeocode2
 
+import java.beans.PropertyChangeEvent
+import java.beans.PropertyChangeListener
+
 application(title: 'ReverseGeocode',
         preferredSize: [650, 225],
         pack: true,
