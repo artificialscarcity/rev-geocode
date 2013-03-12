@@ -21,6 +21,8 @@ class LocationPresentationModel {
     CharValidator chrValidator = new CharValidator();
 
     private String viewMask = "";
+    private Queue<Character> latDegVal
+    private Queue<Character> lngDegVal
 
     public enum MaskCommand {
         PUSH_RESTRICTIONS,
@@ -61,9 +63,7 @@ class LocationPresentationModel {
         public static final MIN_LONGITUDE = -180;
         public static final MAX_LONGITUDE = 180;
 
-        public enum GeoQuadrant {
-            GEO_I, GEO_II, GEO_III, GEO_IV
-        }
+
 
         // Number format byte map
         public enum GeoFormat {
@@ -237,8 +237,17 @@ class LocationPresentationModel {
             def testChar = newVal.charAt(newVal.length() - 1);
             //def regexMask;
 
-            if (this.CHAR_STATE == CharacterState.UNDEF) {
+            if (ACPT_DELIMITERS.contains(testChar)) {
 
+            }
+            else if (ACPT_VECTORCHARS.contains(testChar)) {
+
+            }
+            else if (testChar.isDigit()) {
+
+            }
+            else {
+                //WHY ARE WE HERE?
             }
 
 
