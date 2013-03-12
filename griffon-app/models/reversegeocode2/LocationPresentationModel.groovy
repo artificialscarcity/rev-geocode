@@ -56,16 +56,20 @@ class LocationPresentationModel {
         public Boolean IS_VALID;
 
         // Accepted value ranges
-        private static final MIN_LATITUDE = -90;
-        private static final MAX_LATITUDE = 90;
-        private static final MIN_LONGITUDE = -180;
-        private static final MAX_LONGITUDE = 180;
+        public static final MIN_LATITUDE = -90;
+        public static final MAX_LATITUDE = 90;
+        public static final MIN_LONGITUDE = -180;
+        public static final MAX_LONGITUDE = 180;
+
+        public enum GeoQuadrant {
+            GEO_I, GEO_II, GEO_III, GEO_IV
+        }
 
         // Number format byte map
         public enum GeoFormat {
             GEO_SEXAGES, GEO_DECIMAL,
         }
-        private Map<GeoFormat, Byte> geoFormatByteMap = new HashMap<GeoFormat, Byte>() {{
+        private final Map<GeoFormat, Byte> geoFormatByteMap = new HashMap<GeoFormat, Byte>() {{
             put(GeoFormat.GEO_SEXAGES, 00.byteValue());
             put(GeoFormat.GEO_DECIMAL, 01.byteValue());
         }}
@@ -74,7 +78,7 @@ class LocationPresentationModel {
         public enum GeoDirection {
             GEO_OPERATOR, GEO_ORDINAL
         }
-        private static final Map<GeoDirection, Byte> geoDirectionByteMap = new HashMap<GeoDirection, Byte>() {{
+        private final Map<GeoDirection, Byte> geoDirectionByteMap = new HashMap<GeoDirection, Byte>() {{
             put(GeoDirection.GEO_OPERATOR, 10.byteValue());
             put(GeoDirection.GEO_ORDINAL, 11.byteValue());
         }}
@@ -201,90 +205,103 @@ class LocationPresentationModel {
     }
 
     public class CharValidator {
-        private static final List<Integer> uniqueSet = Arrays.asList( 1, 10, 11, 12 );
-        private static final List<Integer> numDegSet = Arrays.asList( 2, 3, 4 );
-        private static final List<Integer> numMinSet = Arrays.asList( 5, 6, 7 );
-        private static final List<Integer> numSecSet = Arrays.asList( 8, 9 );
+        private static final List<Character> ACPT_DELIMITERS = ["\\s", "\'", "\"", ".", "D", "d", "M", "m", "S", "s" ];
+        private static final List<Character> ACPT_VECTORCHARS = ["N", "n", "S", "s", "E", "e", "W", "w", "+", "-"];
 
-        private static final Map<Integer, String> uniqueValidationKeys = new HashMap<Integer, String>() {{
-            put(1, "(-|[0-9])");
-            put(10, "(\\s|\"|S|s|N|n|W|w|E|e[0-9])");
-            put(11, "(\\s|N|n|S|s|W|w|E|e|\\-)");
-            put(12, "(N|n|S|s|W|w|E|e|\\-)");
-        }}
+        private enum CharacterState {
+            UNDEF, DEGREES, MINUTES, SECONDS, DECIMAL
+        }
+        public CharacterState CHAR_STATE;
+        //private static final List<Integer> uniqueSet = Arrays.asList( 1, 10, 11, 12 );
+        //private static final List<Integer> numDegSet = Arrays.asList( 2, 3, 4 );
+        //private static final List<Integer> numMinSet = Arrays.asList( 5, 6, 7 );
+        //private static final List<Integer> numSecSet = Arrays.asList( 8, 9 );
 
-        private static final String numDegMask = "(\\s|D|d|.|[0-9])";
-        private static final String numMinMask = "(\\'|M|m|[0-9])";
-        private static final String numSecMask = "(\"|\\s|S|s|[0-9])"
+        //private static final Map<Integer, String> uniqueValidationKeys = new HashMap<Integer, String>() {{
+        //    put(1, "(-|[0-9])");
+        //    put(10, "(\\s|\"|S|s|N|n|W|w|E|e[0-9])");
+        //    put(11, "(\\s|N|n|S|s|W|w|E|e|\\-)");
+        //    put(12, "(N|n|S|s|W|w|E|e|\\-)");
+        //}}
+
+        //private static final String numDegMask = "(\\s|D|d|.|[0-9])";
+        //private static final String numMinMask = "(\\'|M|m|[0-9])";
+        //private static final String numSecMask = "(\"|\\s|S|s|[0-9])"
 
         CharValidator() {
-
+            CHAR_STATE = CharacterState.DEGREES;
         }
 
         public Boolean isCharacterValid(String newVal, String prop) {
             if (newVal.length() == 0) return true;
             def testChar = newVal.charAt(newVal.length() - 1);
-            def regexMask;
+            //def regexMask;
 
-            if (uniqueSet.contains(newVal.length())) {
-                regexMask = uniqueValidationKeys.get(newVal.length())
-            }   else if (numSecSet.contains(newVal.length())) {
-                regexMask = numSecMask
-            }   else if (numDegSet.contains(newVal.length())) {
-                regexMask = numDegMask
-            }   else if (numMinSet.contains(newVal.length())) {
-                regexMask = numMinMask
-            }   else {
-                // WHY ARE WE HERE?
+            if (this.CHAR_STATE == CharacterState.UNDEF) {
+
             }
+
+
+            //if (uniqueSet.contains(newVal.length())) {
+            //    regexMask = uniqueValidationKeys.get(newVal.length())
+            //}   else if (numSecSet.contains(newVal.length())) {
+            //    regexMask = numSecMask
+            //}   else if (numDegSet.contains(newVal.length())) {
+            //    regexMask = numDegMask
+            //}   else if (numMinSet.contains(newVal.length())) {
+            //    regexMask = numMinMask
+            //}   else {
+                // WHY ARE WE HERE?
+            //    regexMask = ""
+            //}
 
             // This length testing fall-through is bulky and difficult to read
             // Is there a way to simplify it?
-            if (testChar.toString().matches(regexMask.toString())) {
-                if (newVal == "-") clsValidator.alterPossibleSet(MaskCommand.ELIM_ORDINAL)
-                else if (newVal.length() == 2) {
-                    if (testChar == ".") {
-                        clsValidator.alterPossibleSet(MaskCommand.ELIM_SEXAGES)
-                        if (newVal.substring(1,1) == "-") clsValidator.alterPossibleSet(MaskCommand.ELIM_ORDINAL)
-                    }
-                }
-                else if (newVal.length() == 3) {
-                    if (["D", "d", "\\s"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.ELIM_DECIMAL)
-                    if (testChar == ".") {
-                        clsValidator.alterPossibleSet(MaskCommand.ELIM_SEXAGES)
-                        if (newVal.substring(1,1) == "-") clsValidator.alterPossibleSet(MaskCommand.ELIM_ORDINAL)
-                    }
-                    if (testChar.isDigit()) {
-                        if (prop == "latitude") clsValidator.alterPossibleSet(MaskCommand.WEAK_SEXAOPER)
-                        else clsValidator.alterPossibleSet(MaskCommand.PUSH_RESTRICTIONS)
-                    }
-                }
-                else if (newVal.length() == 4) {
-                    if (["D", "d", "\\s"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.WEAK_SEXAOPER)
-                    if (testChar == ".") clsValidator.alterPossibleSet(MaskCommand.WEAK_DECIOPER)
-                }
-                else if (newVal.length() == 6) {
-                    if (["'", "M", "m"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.ELIM_DECIMAL)
-                }
-                else if (newVal.length() == 7) {
-                    if (["'", "M", "m"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.WEAK_SEXAOPER)
-                }
-                else if (newVal.length() == 9) {
-                    if (["\"", "S", "s"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.ELIM_DECIMAL)
-                }
-                else if (newVal.length() == 10) {
-                    if (testChar == "\\s") clsValidator.alterPossibleSet(MaskCommand.ELIM_OPERATOR)
-                    if (["\"", "S", "s"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.WEAK_SEXAOPER)
-                    if (testChar.isDigit()) clsValidator.alterPossibleSet(MaskCommand.WEAK_DECIOPER)
-                }
-                else if (newVal.length() == 11) {
-                    if (!(testChar == "-")) clsValidator.alterPossibleSet(MaskCommand.ELIM_OPERATOR)
-                    else return; // SPECIALIZED CALL NEEDED HERE
-                }
+            //if (testChar.toString().matches(regexMask.toString())) {
+            //    if (newVal == "-") clsValidator.alterPossibleSet(MaskCommand.ELIM_ORDINAL)
+            //    else if (newVal.length() == 2) {
+            //        if (testChar == ".") {
+            //            clsValidator.alterPossibleSet(MaskCommand.ELIM_SEXAGES)
+            //            if (newVal.substring(1,1) == "-") clsValidator.alterPossibleSet(MaskCommand.ELIM_ORDINAL)
+            //        }
+            //    }
+            //    else if (newVal.length() == 3) {
+            //        if (["D", "d", "\\s"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.ELIM_DECIMAL)
+            //        if (testChar == ".") {
+            //            clsValidator.alterPossibleSet(MaskCommand.ELIM_SEXAGES)
+            //            if (newVal.substring(1,1) == "-") clsValidator.alterPossibleSet(MaskCommand.ELIM_ORDINAL)
+            //        }
+            //        if (testChar.isDigit()) {
+            //            if (prop == "latitude") clsValidator.alterPossibleSet(MaskCommand.WEAK_SEXAOPER)
+            //            else clsValidator.alterPossibleSet(MaskCommand.PUSH_RESTRICTIONS)
+            //        }
+            //    }
+            //    else if (newVal.length() == 4) {
+            //        if (["D", "d", "\\s"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.WEAK_SEXAOPER)
+            //        if (testChar == ".") clsValidator.alterPossibleSet(MaskCommand.WEAK_DECIOPER)
+            //    }
+            //    else if (newVal.length() == 6) {
+            //        if (["'", "M", "m"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.ELIM_DECIMAL)
+            //    }
+            //    else if (newVal.length() == 7) {
+            //        if (["'", "M", "m"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.WEAK_SEXAOPER)
+            //    }
+            //    else if (newVal.length() == 9) {
+            //        if (["\"", "S", "s"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.ELIM_DECIMAL)
+            //    }
+            //    else if (newVal.length() == 10) {
+            //        if (testChar == "\\s") clsValidator.alterPossibleSet(MaskCommand.ELIM_OPERATOR)
+            //        if (["\"", "S", "s"].contains(testChar)) clsValidator.alterPossibleSet(MaskCommand.WEAK_SEXAOPER)
+            //        if (testChar.isDigit()) clsValidator.alterPossibleSet(MaskCommand.WEAK_DECIOPER)
+            //    }
+            //    else if (newVal.length() == 11) {
+            //        if (!(testChar == "-")) clsValidator.alterPossibleSet(MaskCommand.ELIM_OPERATOR)
+            //        else return; // SPECIALIZED CALL NEEDED HERE
+            //    }
 
-                return true;
-            }
-            else return false;
+            //    return true;
+            //}
+            //else return false;
         }
     }
 }

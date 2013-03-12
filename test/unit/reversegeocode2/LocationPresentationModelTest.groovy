@@ -26,6 +26,65 @@ class LocationPresentationModelTest extends GroovyTestCase {
         assert Double.parseDouble(model.longitude) == model.GeoLocation.dblLongitude
     }
 
+    void testAllPossibilities() {
+        def model = new LocationPresentationModel()
+        def testStr
+
+        for (def i=-180;i<=180;i++) {
+            for (def j=0;j<=59;j++) {
+                for (def k=0;k<=59;k++) {
+                    if (i<=90) {
+                        //TESTS ALL SEXAGESIMAL ORDINAL LATITUDE
+                        for (def c:["N","n","S","s","+","-"]) {
+                            testStr = "${i} ${j}\'${k}\" ${c}"
+                            //AND DECIMAL BLENDS
+                            for(def d=0;d<1;d+=0.001) {
+                                while (d.toString().length() < 5) {
+                                    d += "0"
+                                    testStr = "${c}${i} ${j}\'${k}.${d}\""
+                                }
+                            }
+                        }
+                        //TESTS ALL SEXAGESIMAL OPERATOR LATITUDE
+                        for (def c:["+","-",""]) {
+                            testStr = "${c}${i} ${j}\' ${k}\""
+                            //AND DECIMAL BLENDS
+                            for(def d=0;d<1;d+=0.001) {
+                                while (d.toString().length() < 5) {
+                                    d += "0"
+                                    testStr = "${c}${i} ${j}\'${k}.${d}\""
+                                }
+                            }
+                        }
+
+                        for(def d=0;d<1;d+=0.000001) {
+                            //TESTS ALL DECIMAL OPERATOR LATITUDE
+                            for (def c:["+", "-", ""]) {
+                                testStr = "${c}${i + d}"
+                            }
+                            //TESTS ALL DECIMAL ORDINAL LATITUDE
+                            for (def c:[" N", " n", " S", " s", ""]) {
+                                testStr = "${i + d}${c}"
+                            }
+                        }
+                    }
+
+                    for (def c:["E", "e", "W", "w", "+", "-"])
+                    {
+                        testStr = "${i} ${j}\'${k}\" ${c}"
+                    }
+
+                    for (def d=0;d<1;d+=0.001) {
+
+                    }
+                    for (def d=0;d<1;d+=0.000001) {
+
+                    }
+                }
+            }
+        }
+    }
+
     void testValidator() {
         def goodValLat = [41.23, 44.25, 39.17, 40.56]
         def goodValLng = [-88.26, -90.3, -87.43, -88.17]

@@ -26,6 +26,7 @@ class ReverseGeocode2Model {
                     currentLocation[e.propertyName] = e.newValue
                     //currentLocation.clsValidator.refreshValidation()
                     currentLocation['verified'] = currentLocation.clsValidator.IS_VALID
+                    if (!currentLocation.clsValidator.IS_VALID) IsValidCoordinateSet()
                     // Ignore if property name is verified or address because this will cause another
                     //      PropertyChangeEvent; how might we be able to determine the source of the call
                     //if (e.propertyName != 'verified' && e.propertyName != 'address') {
